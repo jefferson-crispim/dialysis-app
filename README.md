@@ -6,7 +6,7 @@ Todas as tabelas ficam no schema `nefro`, para dividir o projeto Supabase com o 
 ## Primeira configuração (uma vez)
 
 1. **Banco:** no Supabase (projeto compartilhado), abra *SQL Editor* e execute, nesta ordem,
-   `supabase/migrations/0001_schema.sql`, `0002_rls.sql` e `0003_views.sql`.
+   `supabase/migrations/0001_schema.sql`, `0002_rls.sql`, `0003_views.sql` e `0004_nursing_process.sql`.
 2. **Expor o schema:** *Settings → API → Exposed schemas* → adicione `nefro`.
 3. **Login social:** *Authentication → Providers* → habilite **Google** e **LinkedIn (OIDC)**.
    Em *URL Configuration* adicione `http://localhost:3000/auth/callback` e `https://SEU-APP.vercel.app/auth/callback`.

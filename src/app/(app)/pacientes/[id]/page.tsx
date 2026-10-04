@@ -8,8 +8,9 @@ import { Icon } from "@/components/Icon";
 import { bcmAlert, ktvAlert, labAlert, type ClinicalAlert } from "@/lib/clinical/alerts";
 import { hydrationStatus } from "@/lib/clinical/bcm";
 import type { Modality } from "@/lib/clinical/ktv";
+import { formatDate } from "@/lib/date";
 
-const fmt = (iso: string | null) => (iso ? iso.split("-").reverse().join("/") : "—");
+const fmt = (iso: string | null) => formatDate(iso, "—");
 
 type Ktv = { id: string; date: string; calculated_ktv: number | null; imported_ktv: number | null };
 type Bcm = { id: string; date: string; overhydration: number | null; ecw: number | null; dry_weight_suggested: number | null };
@@ -40,7 +41,7 @@ export default async function PacientePage({ params, searchParams }: { params: P
     supabase.from("lab_results").select("id,date,analyte,value").eq("patient_id", id).order("date", { ascending: false }).limit(40),
     supabase.from("infections").select("id,date,infected_area,microorganism,outcome").eq("patient_id", id).order("date", { ascending: false }).limit(6),
     supabase.from("hospitalizations").select("id,date,end_date,reason,outcome").eq("patient_id", id).order("date", { ascending: false }).limit(6),
-    supabase.from("nursing_diagnoses").select("id,date,diagnosis_code,intervention,evaluation").eq("patient_id", id).order("date", { ascending: false }).limit(6),
+    supabase.from("nursing_diagnoses").select("id,date,diagnosis_code,etiology,intervention").eq("patient_id", id).eq("status", "ativo").order("date", { ascending: false }).limit(6),
   ]);
   const ktv = (ktvR.data ?? []) as Ktv[];
   const bcm = (bcmR.data ?? []) as Bcm[];
@@ -90,7 +91,10 @@ export default async function PacientePage({ params, searchParams }: { params: P
         {act("ktv", "Registrar Kt/V", "water_drop")}
         {act("bcm", "Registrar BCM", "monitor_weight")}
         {act("labs", "Registrar exames", "biotech")}
-        {act("diagnostico", "Novo diagnóstico", "clinical_notes")}
+        {act("avaliacao", "Avaliação de enfermagem", "assignment")}
+        <LinkButton href={`/pacientes/${id}/processo`} icon="clinical_notes" variant="secondary">
+          Processo de enfermagem
+        </LinkButton>
         {act("infeccao", "Registrar infecção", "coronavirus")}
       </div>
 
@@ -147,14 +151,11 @@ export default async function PacientePage({ params, searchParams }: { params: P
             );
           })}
         </List>
-        <List title="Processo de enfermagem" icon="clinical_notes" empty="Nenhum diagnóstico registrado.">
+        <List title="Diagnósticos de enfermagem ativos" icon="clinical_notes" empty="Nenhum diagnóstico ativo. Abra o Processo de enfermagem para ver sugestões.">
           {(dxR.data ?? []).map((d) => (
             <li key={d.id} className="py-2">
               <p className="font-semibold">{d.diagnosis_code}</p>
-              <p className="text-sm text-muted">
-                {fmt(d.date)}
-                {d.intervention ? ` · ${d.intervention}` : ""}
-              </p>
+              <p className="text-sm text-muted">{[fmt(d.date), d.etiology ? `relacionado a ${d.etiology}` : d.intervention].filter(Boolean).join(" · ")}</p>
             </li>
           ))}
         </List>

@@ -8,6 +8,7 @@ import { Stepper } from "./Stepper";
 import { Button } from "./Button";
 import { AlertBadge } from "./AlertBadge";
 import { Icon } from "./Icon";
+import { DateField } from "./DateField";
 
 const STEPS = ["Paciente", "Dados", "Conferir"];
 const input = "mt-1 min-h-11 w-full rounded-[var(--radius-sm)] border border-line bg-card px-3 text-ink";
@@ -110,10 +111,12 @@ export function RecordWizard({ slug, orgId, patients, initialPatientId }: Props)
                   </select>
                 ) : f.type === "textarea" ? (
                   <textarea className={`${input} py-2`} rows={3} value={values[f.name]} onChange={(e) => setValues({ ...values, [f.name]: e.target.value })} />
+                ) : f.type === "date" ? (
+                  <DateField className={input} value={values[f.name]} required={f.required} onChange={(iso) => setValues({ ...values, [f.name]: iso })} />
                 ) : (
                   <input
                     className={input}
-                    type={f.type === "number" ? "text" : f.type}
+                    type="text"
                     inputMode={f.type === "number" ? "decimal" : undefined}
                     value={values[f.name]}
                     required={f.required}
