@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
 
-export const NAV = [
+/** `mobile: false` tira o item da barra inferior (6 itens cabem; o resto fica só no menu lateral). */
+export const NAV: { href: string; label: string; icon: string; mobile?: boolean }[] = [
   { href: "/hoje", label: "Hoje", icon: "today" },
   { href: "/pacientes", label: "Pacientes", icon: "groups" },
+  { href: "/enfermagem", label: "Enfermagem", icon: "clinical_notes" },
   { href: "/lancar", label: "Lançar", icon: "add_circle" },
   { href: "/paineis", label: "Painéis", icon: "monitoring" },
-  { href: "/importar", label: "Importar", icon: "upload_file" },
+  { href: "/importar", label: "Importar", icon: "upload_file", mobile: false },
   { href: "/ajustes", label: "Ajustes", icon: "settings" },
 ];
 
@@ -44,7 +46,7 @@ export function BottomNav() {
       aria-label="Principal"
       className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-6 border-t border-line bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      {NAV.map((n) => {
+      {NAV.filter((n) => n.mobile !== false).map((n) => {
         const active = path === n.href || path.startsWith(`${n.href}/`);
         return (
           <Link
