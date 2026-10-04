@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
+/* Paleta extraída da identidade do Dia Mundial do Rim.
+   Marca = petróleo + tinta. As quatro cores vivas só carregam significado clínico. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --sun: #f7c72c;
+  --coral: #ef4b6c;
+  --sky: #6cd2f4;
+  --leaf: #5db665;
+  --teal: #1f6a8a;
+
+  --bg: #f6fafb;
+  --card: #ffffff;
+  --ink: #1b1b1f;
+  --muted: #55636c;
+  --line: #dce6ea;
+  --brand: #1f6a8a;
+  --brand-ink: #ffffff;
+  --brand-soft: #e3f0f5;
+
+  --crit-bg: #fde6eb;
+  --crit-ink: #a8123a;
+  --warn-bg: #fff2c4;
+  --warn-ink: #6b5000;
+  --ok-bg: #e2f4e4;
+  --ok-ink: #1d6a27;
+  --info-bg: #dff4fc;
+  --info-ink: #0a5673;
+
+  --radius: 14px;
+  --radius-sm: 10px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root[data-theme="dark"] {
+  --bg: #0e1a1f;
+  --card: #15252c;
+  --ink: #eaf2f5;
+  --muted: #9db0b9;
+  --line: #27404a;
+  --brand: #4fb0d4;
+  --brand-ink: #08242f;
+  --brand-soft: #1b3642;
+
+  --crit-bg: #4a1b28;
+  --crit-ink: #ffb3c3;
+  --warn-bg: #433710;
+  --warn-ink: #ffe28a;
+  --ok-bg: #173a1d;
+  --ok-ink: #a5e3ac;
+  --info-bg: #12384a;
+  --info-ink: #a9e4fa;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --bg: #0e1a1f;
+    --card: #15252c;
+    --ink: #eaf2f5;
+    --muted: #9db0b9;
+    --line: #27404a;
+    --brand: #4fb0d4;
+    --brand-ink: #08242f;
+    --brand-soft: #1b3642;
+
+    --crit-bg: #4a1b28;
+    --crit-ink: #ffb3c3;
+    --warn-bg: #433710;
+    --warn-ink: #ffe28a;
+    --ok-bg: #173a1d;
+    --ok-ink: #a5e3ac;
+    --info-bg: #12384a;
+    --info-ink: #a9e4fa;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-sun: var(--sun);
+  --color-coral: var(--coral);
+  --color-sky: var(--sky);
+  --color-leaf: var(--leaf);
+  --color-crit-bg: var(--crit-bg);
+  --color-crit-ink: var(--crit-ink);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-ink: var(--warn-ink);
+  --color-ok-bg: var(--ok-bg);
+  --color-ok-ink: var(--ok-ink);
+  --color-info-bg: var(--info-bg);
+  --color-info-ink: var(--info-ink);
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --radius-card: var(--radius);
+}
+
+html {
+  background: var(--bg);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
