@@ -91,7 +91,9 @@ export default async function PacientePage({ params, searchParams }: { params: P
         {act("ktv", "Registrar Kt/V", "water_drop")}
         {act("bcm", "Registrar BCM", "monitor_weight")}
         {act("labs", "Registrar exames", "biotech")}
-        {act("avaliacao", "Avaliação de enfermagem", "assignment")}
+        <LinkButton href={`/pacientes/${id}/avaliacao`} icon="assignment" variant="secondary">
+          Avaliação de enfermagem
+        </LinkButton>
         <LinkButton href={`/pacientes/${id}/processo`} icon="clinical_notes" variant="secondary">
           Processo de enfermagem
         </LinkButton>

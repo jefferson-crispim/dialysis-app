@@ -3,9 +3,10 @@ import { hydrationStatus } from "../bcm";
 import type { Modality } from "../ktv";
 import { formatDate } from "../../date";
 import { CATALOG } from "./catalog";
+import { bmi, vitalsAlerts } from "./risk";
 
 /** Dados mais antigos que isso não sustentam uma sugestão. */
-export const MAX_AGE_DAYS = { assessment: 30, bcm: 120, lab: 120, infection: 90, peritonitis: 180 };
+export const MAX_AGE_DAYS = { assessment: 30, bcm: 120, lab: 120, infection: 90, peritonitis: 180, foot: 400 };
 
 export type AssessmentLite = {
   id?: string;
@@ -22,6 +23,16 @@ export type AssessmentLite = {
   adherence_meds: string | null;
   knowledge_deficit: boolean | null;
   mobility: string | null;
+  /** avaliação guiada: sinais vitais e respostas em JSON (ausentes nos registros do formulário antigo) */
+  bp_sys?: number | null;
+  bp_dia?: number | null;
+  hr?: number | null;
+  rr?: number | null;
+  weight_kg?: number | null;
+  height_cm?: number | null;
+  waist_cm?: number | null;
+  glucose?: number | null;
+  answers?: Record<string, unknown> | null;
 };
 
 export type SuggestInput = {
@@ -32,6 +43,8 @@ export type SuggestInput = {
   labs: { date: string; analyte: string; value: number }[];
   infections: { date: string; infected_area: string | null }[];
   assessment: AssessmentLite | null;
+  /** último rastreamento do pé diabético */
+  foot?: { date: string; risk_category: number } | null;
   /** diagnósticos ativos já registrados: não voltam a ser sugeridos */
   activeCatalogIds: string[];
 };
@@ -140,6 +153,32 @@ export function suggestDiagnoses(input: SuggestInput): Suggestion[] {
       const detail = [...low, ...partial].map(([k, v]) => `${k} ${v!.toLowerCase()}`).join(", ");
       add("adesao_regime", "atencao", `Avaliação ${aDate}: adesão — ${detail}`);
     }
+  }
+
+  // pé diabético (rastreamento próprio, vale por mais tempo que a avaliação)
+  if (input.foot && input.foot.risk_category >= 1 && fresh(input.foot.date, MAX_AGE_DAYS.foot, today)) {
+    add("risco_ulcera_pe", input.foot.risk_category === 3 ? "critico" : "atencao", `Pé diabético ${formatDate(input.foot.date)}: categoria de risco ${input.foot.risk_category}`);
+  }
+
+  // avaliação guiada (roteiro SAE)
+  if (a) {
+    const ans = a.answers ?? {};
+    const is = (key: string, ...values: string[]) => typeof ans[key] === "string" && values.includes(ans[key] as string);
+    const includes = (key: string, value: string) => Array.isArray(ans[key]) && (ans[key] as string[]).includes(value);
+
+    const pa = vitalsAlerts({ bp_sys: a.bp_sys, bp_dia: a.bp_dia }, null).find((v) => v.code === "pa_alta" || v.code === "pa_muito_alta");
+    if (pa) add("risco_pa", pa.severity, `Avaliação ${aDate}: ${pa.title}`);
+    const imc = bmi(a.weight_kg, a.height_cm);
+    if (imc !== null && imc >= 30) add("sobrepeso", "info", `Avaliação ${aDate}: IMC ${imc} kg/m² (confirme com o peso seco)`);
+    if (is("perfusao", "> 3 segundos")) add("perfusao_periferica", "atencao", `Avaliação ${aDate}: enchimento capilar > 3 segundos`);
+    if (is("pulso_pedioso", "Diminuído", "Não palpável")) add("perfusao_periferica", "atencao", `Avaliação ${aDate}: pulso pedioso ${String(ans.pulso_pedioso).toLowerCase()}`);
+    if (is("autocuidado", "Parcialmente dependente", "Dependente")) add("autocuidado_deficiente", "atencao", `Avaliação ${aDate}: autocuidado ${String(ans.autocuidado).toLowerCase()}`);
+    if (is("sono", "Prejudicado")) add("sono_prejudicado", "atencao", `Avaliação ${aDate}: sono prejudicado`);
+    if (is("exercicio", "Não pratica")) add("sedentarismo", "info", `Avaliação ${aDate}: não pratica exercício físico`);
+    if (is("intestinal", "Constipação")) add("constipacao", "atencao", `Avaliação ${aDate}: constipação`);
+    if (is("tabagismo", "Fuma")) add("habitos_risco", "atencao", `Avaliação ${aDate}: fuma`);
+    if (is("alcool_drogas", "Frequente")) add("habitos_risco", "atencao", `Avaliação ${aDate}: consumo frequente de álcool ou drogas`);
+    if (includes("oral", "Lesões") || includes("oral", "Ausência de dentes que dificulta a alimentação")) add("denticao_prejudicada", "atencao", `Avaliação ${aDate}: alteração na cavidade oral`);
   }
 
   const active = new Set(input.activeCatalogIds);

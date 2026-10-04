@@ -39,7 +39,6 @@ const n = (v: string | undefined) => {
   return Number.isFinite(x) ? x : null;
 };
 const t = (v: string | undefined) => (v && v.trim() ? v.trim() : null);
-const yn = (v: string | undefined) => (v === "Sim" ? true : v === "Não" ? false : null);
 
 /** Resolve "@hoje" / "@hoje+365" na data local do navegador (evita o dia seguinte por causa do UTC). */
 export function resolveDefault(def: string | undefined, now = new Date()): string {
@@ -68,24 +67,6 @@ const LAB_FIELDS: { name: string; label: string; unit: string; step: string }[] 
   { name: "PTH", label: "PTH", unit: "pg/mL", step: "1" },
   { name: "Hb", label: "Hemoglobina", unit: "g/dL", step: "0.1" },
   { name: "Ferritina", label: "Ferritina", unit: "ng/mL", step: "1" },
-];
-
-const GRAUS = ["Boa", "Parcial", "Baixa"];
-const SIM_NAO = ["Sim", "Não"];
-
-const AVALIACAO_FIELDS: FieldDef[] = [
-  { name: "edema", label: "Edema", type: "select", options: ["Ausente", "+", "++", "+++"] },
-  { name: "dyspnea", label: "Dispneia", type: "select", options: SIM_NAO },
-  { name: "pain_score", label: "Dor", type: "number", unit: "0 a 10", step: "1" },
-  { name: "access_site", label: "Sítio do acesso", type: "select", options: ["Sem alterações", "Hiperemia", "Secreção", "Dor local"] },
-  { name: "skin", label: "Pele", type: "select", options: ["Íntegra", "Ressecada", "Prurido", "Lesão"] },
-  { name: "appetite", label: "Apetite", type: "select", options: ["Preservado", "Diminuído"] },
-  { name: "mobility", label: "Mobilidade", type: "select", options: ["Independente", "Com auxílio", "Restrito ao leito"] },
-  { name: "anxiety", label: "Ansiedade", type: "select", options: SIM_NAO },
-  { name: "knowledge_deficit", label: "Dúvidas ou erros sobre o tratamento", type: "select", options: SIM_NAO },
-  { name: "adherence_fluid", label: "Adesão: líquidos", type: "select", options: GRAUS },
-  { name: "adherence_diet", label: "Adesão: dieta", type: "select", options: GRAUS },
-  { name: "adherence_meds", label: "Adesão: medicação", type: "select", options: GRAUS },
 ];
 
 export const FORMS: FormDef[] = [
@@ -267,44 +248,6 @@ export const FORMS: FormDef[] = [
       v.infected_area
         ? { lines: [{ label: "Área", value: v.infected_area }], alerts: v.infected_area === "PERITÔNEO" ? [{ code: "peritonite", severity: "atencao", title: "Peritonite registrada", detail: "Acompanhe cultura e resposta ao tratamento." }] : [] }
         : { lines: [], alerts: [], error: "Escolha a área infectada." },
-  },
-  {
-    slug: "avaliacao",
-    title: "Avaliação de enfermagem",
-    verb: "Registrar avaliação",
-    icon: "assignment",
-    table: "nursing_assessments",
-    description: "Histórico e exame físico estruturados (COFEN 736/2024). Preencha o que observou: as respostas alimentam as sugestões de diagnóstico.",
-    fields: [{ name: "date", label: "Data", type: "date", required: true, defaultValue: "@hoje" }, ...AVALIACAO_FIELDS, { name: "notes", label: "Observações", type: "textarea" }],
-    build: (v) => {
-      const pain = n(v.pain_score);
-      if (pain !== null && (pain < 0 || pain > 10)) return null;
-      const row = {
-        date: v.date,
-        edema: t(v.edema),
-        dyspnea: yn(v.dyspnea),
-        pain_score: pain === null ? null : Math.round(pain),
-        access_site: t(v.access_site),
-        skin: t(v.skin),
-        appetite: t(v.appetite),
-        mobility: t(v.mobility),
-        anxiety: yn(v.anxiety),
-        knowledge_deficit: yn(v.knowledge_deficit),
-        adherence_fluid: t(v.adherence_fluid),
-        adherence_diet: t(v.adherence_diet),
-        adherence_meds: t(v.adherence_meds),
-        notes: t(v.notes),
-      };
-      const filled = Object.entries(row).some(([k, x]) => k !== "date" && x !== null);
-      return filled ? [row] : null;
-    },
-    preview: (v) => {
-      const pain = n(v.pain_score);
-      if (pain !== null && (pain < 0 || pain > 10)) return { lines: [], alerts: [], error: "A dor deve estar entre 0 e 10." };
-      const lines = AVALIACAO_FIELDS.flatMap((f) => (t(v[f.name]) ? [{ label: f.label, value: `${v[f.name].trim()}${f.unit && f.name === "pain_score" ? " / 10" : ""}` }] : []));
-      if (!lines.length) return { lines: [], alerts: [], error: "Preencha ao menos um item da avaliação." };
-      return { lines, alerts: [] };
-    },
   },
   {
     slug: "diagnostico",

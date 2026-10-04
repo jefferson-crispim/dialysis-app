@@ -2,7 +2,6 @@ import Link from "next/link";
 import { requireSession } from "@/lib/session";
 import { Card, EmptyState } from "@/components/Card";
 import { Icon } from "@/components/Icon";
-import { LinkButton } from "@/components/Button";
 import type { Modality } from "@/lib/clinical/ktv";
 
 export const metadata = { title: "Enfermagem" };
@@ -28,9 +27,6 @@ export default async function EnfermagemPage({ searchParams }: { searchParams: P
           <h1 className="text-3xl font-extrabold">Processo de enfermagem</h1>
           <p className="text-muted">Escolha o paciente para ver sugestões de diagnóstico, avaliar e acompanhar o plano de cuidados.</p>
         </div>
-        <LinkButton href="/lancar/avaliacao" icon="assignment" variant="secondary">
-          Nova avaliação
-        </LinkButton>
       </div>
 
       <form role="search">

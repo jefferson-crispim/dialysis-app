@@ -145,6 +145,40 @@ describe("suggestDiagnoses", () => {
   });
 });
 
+describe("suggestDiagnoses: avaliação guiada", () => {
+  it("pé diabético categoria 1 a 3 sugere risco de úlcera; categoria 0 e rastreio antigo não", () => {
+    expect(suggestDiagnoses({ ...empty, foot: { date: "2025-05-01", risk_category: 1 } })[0]).toMatchObject({ catalogId: "risco_ulcera_pe", severity: "atencao" });
+    expect(suggestDiagnoses({ ...empty, foot: { date: "2025-05-01", risk_category: 3 } })[0].severity).toBe("critico");
+    expect(ids({ ...empty, foot: { date: "2025-05-01", risk_category: 0 } })).toEqual([]);
+    expect(ids({ ...empty, foot: { date: "2023-01-01", risk_category: 3 } })).toEqual([]);
+  });
+
+  it("PA elevada, IMC e perfusão geram sugestões com a evidência", () => {
+    const found = suggestDiagnoses({
+      ...empty,
+      assessment: assessment({ bp_sys: 160, bp_dia: 95, weight_kg: 95, height_cm: 170, answers: { perfusao: "> 3 segundos", pulso_pedioso: "Não palpável" } }),
+    });
+    expect(found.map((s) => s.catalogId)).toEqual(expect.arrayContaining(["risco_pa", "sobrepeso", "perfusao_periferica"]));
+    expect(found.find((s) => s.catalogId === "perfusao_periferica")!.evidence).toHaveLength(2);
+    expect(found.find((s) => s.catalogId === "risco_pa")!.evidence[0]).toContain("160/95");
+  });
+
+  it("traduz hábitos e autocuidado", () => {
+    const found = ids({
+      ...empty,
+      assessment: assessment({
+        answers: { autocuidado: "Dependente", sono: "Prejudicado", exercicio: "Não pratica", intestinal: "Constipação", tabagismo: "Fuma", oral: ["Lesões"] },
+      }),
+    });
+    expect(found).toEqual(expect.arrayContaining(["autocuidado_deficiente", "sono_prejudicado", "sedentarismo", "constipacao", "habitos_risco", "denticao_prejudicada"]));
+  });
+
+  it("respostas normais e registros do formulário antigo (sem JSON) não geram sugestão", () => {
+    expect(ids({ ...empty, assessment: assessment({ bp_sys: 120, bp_dia: 80, answers: { autocuidado: "Independente", sono: "Adequado", perfusao: "≤ 3 segundos" } }) })).toEqual([]);
+    expect(ids({ ...empty, assessment: assessment({ answers: null }) })).toEqual([]);
+  });
+});
+
 describe("CATALOG", () => {
   it("tem ids únicos e todo item sugerido existe no catálogo", () => {
     const all = CATALOG.map((c) => c.id);

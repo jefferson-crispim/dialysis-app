@@ -30,6 +30,20 @@ export default function LancarPage() {
         ))}
         <li>
           <Link
+            href="/enfermagem"
+            className="flex h-full min-h-20 items-start gap-4 rounded-[var(--radius)] border border-line bg-card p-4 hover:bg-brand-soft"
+          >
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-brand-soft text-brand">
+              <Icon name="assignment" />
+            </span>
+            <span>
+              <span className="block text-lg font-bold">Avaliação de enfermagem</span>
+              <span className="block text-sm text-muted">Histórico e exame físico em etapas, com alertas de risco e diagnósticos sugeridos. Escolha o paciente em Enfermagem.</span>
+            </span>
+          </Link>
+        </li>
+        <li>
+          <Link
             href="/importar"
             className="flex h-full min-h-20 items-start gap-4 rounded-[var(--radius)] border border-dashed border-line bg-card p-4 hover:bg-brand-soft"
           >
